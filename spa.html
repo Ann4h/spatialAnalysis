@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distance Calculator</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #map {
+            height: 400px;
+            margin-top: 20px;
+        }
+        #result {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kenya Town Distance Calculator</h1>
+    <label for="town1">Origin:</label>
+    <select id="town1">
+        <option value="Nairobi">Nairobi</option>
+        <option value="Mombasa">Mombasa</option>
+        <option value="Kisumu">Kisumu</option>
+        <option value="Nakuru">Nakuru</option>
+        <option value="Eldoret">Eldoret</option>
+    </select>
+    <br>
+    <label for="town2">Destination:</label>
+    <select id="town2">
+        <option value="Nairobi">Nairobi</option>
+        <option value="Mombasa">Mombasa</option>
+        <option value="Kisumu">Kisumu</option>
+        <option value="Nakuru">Nakuru</option>
+        <option value="Eldoret">Eldoret</option>
+    </select>
+    <br>
+    <button onclick="calculateDistance()">Calculate Distance</button>
+    <div id="result"></div>
+    <div id="map"></div>
+<div class="footer">
+    <p>&copy; ENC221-0102/2018</p>
+  </div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var townCoordinates = {
+            Nairobi: { lat: -1.2921, lon: 36.8219 },
+            Mombasa: { lat: -4.0435, lon: 39.6682 },
+            Kisumu: { lat: -0.0917, lon: 34.7672 },
+            Nakuru: { lat: -0.3031, lon: 36.0804 },
+            Eldoret: { lat: 0.5143, lon: 35.2698 }
+        };
+
+        var map = L.map('map').setView([-1.2921, 36.8219], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        var line = null; // Variable to store the connecting line
+
+        function calculateDistance() {
+            var town1 = document.getElementById("town1").value;
+            var town2 = document.getElementById("town2").value;
+
+            var lat1 = townCoordinates[town1].lat;
+            var lon1 = townCoordinates[town1].lon;
+            var lat2 = townCoordinates[town2].lat;
+            var lon2 = townCoordinates[town2].lon;
+
+            var distance = haversineDistance(lat1, lon1, lat2, lon2);
+            document.getElementById("result").textContent = "Distance between " + town1 + " and " + town2 + ": " + distance.toFixed(2) + " km";
+
+            // Clear existing markers and line on the map
+            if (map.hasLayer(marker1)) {
+                map.removeLayer(marker1);
+            }
+            if (map.hasLayer(marker2)) {
+                map.removeLayer(marker2);
+            }
+            if (line) {
+                map.removeLayer(line);
+            }
+
+            // Add markers for the selected towns
+            var marker1 = L.marker([lat1, lon1]).addTo(map);
+            marker1.bindPopup(town1);
+            var marker2 = L.marker([lat2, lon2]).addTo(map);
+            marker2.bindPopup(town2);
+
+            // Add a line connecting the towns
+            line = L.polyline([[lat1, lon1], [lat2, lon2]], { color: 'blue' }).addTo(map);
+
+            // Fit the map bounds to include both markers and the line
+            var bounds = L.latLngBounds([lat1, lon1], [lat2, lon2]);
+            map.fitBounds(bounds);
+        }
+
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            var R = 6371; // Radius of the earth in km
+            var dLat = degToRad(lat2 - lat1);
+            var dLon = degToRad(lon2 - lon1);
+            var a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(degToRad(lat1)) * Math.cos(degToRad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function degToRad(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+    </script>
+</body>
+</html>
